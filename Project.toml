@@ -3,6 +3,14 @@ uuid = "1f1de9d1-aca4-4c8e-afb2-c0dacbfd2c56"
 authors = ["aner <4aner4@gmail.com> and contributors"]
 version = "1.0.0-DEV"
 
+[deps]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+HypothesisTests = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MittagLeffler = "9c257583-4f8f-53fd-abd9-c69d5080dd54"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
+
 [compat]
 julia = "1"
 
