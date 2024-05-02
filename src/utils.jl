@@ -35,13 +35,22 @@ function myrand(S::sojourn,i::Int)
     return ret
 end
 
-function score(S::sojourn,i::Int,τ::Number;type::Symbol=:pdf)
+function score(S::sojourn,i::Int,τ::Number;type::Symbol,ϵ=sqrt(eps()))
     if type == :pdf
-        f(α) = τ^(α-1)*mittleff(α,α,S.diagA[i]*τ^α)
+        # @show "i got in here"
+        function f(α) 
+            τ^(α-1)*mittleff(α,α,S.diagA[i]*τ^α)
+        end
+        return (log(f(S.α[i]+ϵ/2))-log(f(S.α[i]-ϵ/2)))/ϵ
     elseif type == :cdf
-        f(α) = mittleff(α,S.diagA[i]*τ^α)
+        function g(α)
+            mittleff(α,S.diagA[i]*τ^α)
+        end
+        #@show 
+        return (log(g(S.α[i]+ϵ/2))-log(g(S.α[i]-ϵ/2)))/ϵ
     else
         throw("type must be either symbol :pdf or :cdf")
     end
-    return ForwardDiff.derivative(log(f),S.α[i])
+    # return ForwardDiff.derivative(α->log(f(α)),S.α[i]) ForwardDiff not working 
+    # return (log(f(S.α[i]+ϵ/2))-log(f(S.α[i]-ϵ/2)))/ϵ # Julia doesn't carry the f outside the ifs
 end
