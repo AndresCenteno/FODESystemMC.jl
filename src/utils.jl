@@ -38,13 +38,14 @@ end
 function score(S::sojourn,i::Int,τ::Number;type::Symbol,ϵ=sqrt(eps()))
     if type == :pdf
         # @show "i got in here"
+        # in sojourn, rate is positive!
         function f(α) 
-            τ^(α-1)*mittleff(α,α,S.diagA[i]*τ^α)
+            τ^(α-1)*S.diagA[i]*mittleff(α,α,-S.diagA[i]*τ^α)
         end
         return (log(f(S.α[i]+ϵ/2))-log(f(S.α[i]-ϵ/2)))/ϵ
     elseif type == :cdf
         function g(α)
-            mittleff(α,S.diagA[i]*τ^α)
+            mittleff(α,-S.diagA[i]*τ^α)
         end
         #@show 
         return (log(g(S.α[i]+ϵ/2))-log(g(S.α[i]-ϵ/2)))/ϵ

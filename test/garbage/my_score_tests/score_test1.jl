@@ -9,7 +9,7 @@ EPS = sqrt(eps())
 p(t,α) = t^(α-1)*mittleff(α,α,-t^α)
 function f(t,α) 
     if t < 3; return sin(α*t);
-    else
+    else # if i dont put this else variance blows up
         return 0.3
     end
 end
