@@ -8,6 +8,16 @@ function MCDecomposition(A::Matrix)
     return Q, P 
 end
 
+function MCDecomposition2(A::Matrix)
+    n = size(A,1); 
+    P = copy(abs.(A));
+    P[1:n+1:end] .= 0
+    Q = sum(P,dims=2);
+    P = P./ Q
+    P = cumsum(P,dims=2)
+    return Q, P 
+end
+
 # random FODESystem that passes all checks
 struct randFODESystem end
 function myrand(::randFODESystem,n::Int;sign=false,no_potential=false)
@@ -35,23 +45,20 @@ function myrand(S::sojourn,i::Int)
     return ret
 end
 
-function score(S::sojourn,i::Int,τ::Number;type::Symbol,ϵ=sqrt(eps()))
+using FiniteDifferences
+
+function score(S::sojourn,i::Int,τ::Number;type::Symbol,p::Int=2)
     if type == :pdf
-        # @show "i got in here"
-        # in sojourn, rate is positive!
-        function f(α) 
-            τ^(α-1)*S.diagA[i]*mittleff(α,α,-S.diagA[i]*τ^α)
+        function logpdf(α,Aii) 
+            return log(-τ^(α-1)*Aii*mittleff(α,α,Aii*τ^α))
         end
-        return (log(f(S.α[i]+ϵ/2))-log(f(S.α[i]-ϵ/2)))/ϵ
+        return grad(central_fdm(p,1),α->logpdf(α,S.diagA[i]),S.α[i])[1], grad(central_fdm(p,1),Aii->logpdf(S.α[i],Aii),S.diagA[i])[1]
     elseif type == :cdf
-        function g(α)
-            mittleff(α,-S.diagA[i]*τ^α)
+        function logcdf(α,Aii)
+            return log(mittleff(α,Aii*τ^α))
         end
-        #@show 
-        return (log(g(S.α[i]+ϵ/2))-log(g(S.α[i]-ϵ/2)))/ϵ
+        return grad(central_fdm(p,1),α->logcdf(α,S.diagA[i]),S.α[i])[1], grad(central_fdm(p,1),Aii->logcdf(S.α[i],Aii),S.diagA[i])[1]
     else
         throw("type must be either symbol :pdf or :cdf")
     end
-    # return ForwardDiff.derivative(α->log(f(α)),S.α[i]) ForwardDiff not working 
-    # return (log(f(S.α[i]+ϵ/2))-log(f(S.α[i]-ϵ/2)))/ϵ # Julia doesn't carry the f outside the ifs
 end

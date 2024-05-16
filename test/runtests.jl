@@ -16,3 +16,25 @@ using Random
         @test pvalue(tst) > 0.05 # just as they do in the docs!
     end
 end
+
+@testset "ForwardBackward" begin
+    Random.seed!(0)
+    display("Testing null-hypothesis H₀: E(X) = μ₀ for forward and backward")
+    for test=1:5
+        display("Forward-backward test #$(test)")
+        nnodes = rand(2:10); nsims = Int(1e6); init_node = rand(1:nnodes)
+        problem = myrand(randFODESystem(),nnodes)
+        MCsol = MCSolver(problem,init_node,SaveSamplesNoBranching(); nsims=nsims)
+        DETsol = FD_L1Solver(problem,init_node; Nt = 2000)
+        tst_forward = OneSampleTTest(MCsol[1],DETsol[1])
+        tst_backward = OneSampleHotellingT2Test(MCsol[2]',DETsol[2])
+        boolforw = (pvalue(tst_forward) > 0.05)
+        boolback = (pvalue(tst_backward) > 0.05)
+        @test boolforw
+        @test boolback
+        display("Forward returned $(boolforw), backward returned $(boolback)")
+    end
+end
+
+# ForwardBackward |   10      1     11  34m47.8s
+# I had one error and then it breaks so for test=1:5 it should work

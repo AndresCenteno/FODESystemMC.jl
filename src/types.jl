@@ -34,7 +34,7 @@ struct sojourn
     α::Vector # of fractional coefficients
     # not writing checks because this should be checked first at FODESystem
     function sojourn(A::Matrix,α::Vector)
-        diagA = -copy(diag(A))
+        diagA = copy(diag(A))
         new(diagA,α)
     end
 end
