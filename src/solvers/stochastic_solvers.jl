@@ -14,7 +14,7 @@ function MCSolver(problem::FODESystem,init_state::Int;nsims::Int=Int(1e6))
     uiT = zero(u0[1]);
     # sensitivities
     duiTdα = zero(α); duiTdA = zero(A); duiTdu0 = zero(u0); duiTdT = zero(T)
-    for sim=1:nsims
+    res = @distributed _add_forwback for sim=1:nsims
         i = copy(init_state) # state
         L = 1; score_α = zero(α); score_A = zero(A)
         τ = myrand(sojo,i); t = τ
@@ -41,10 +41,13 @@ function MCSolver(problem::FODESystem,init_state::Int;nsims::Int=Int(1e6))
         score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
 
         res = L*u0[i]/nsims
-        uiT += res; duiTdα += score_α*res; duiTdA += score_A*res;
-        duiTdu0[i] += L/nsims; duiTdT += L*u0[i]*score(sojo,i,T-(t-τ),type=:finaltime)/nsims#?
+        forwback(res,score_A*res,L/nsims,score_α*res,score(sojo,i,T-(t-τ),type=:finaltime)*res)
     end
-    return forwback(uiT, duiTdα, duiTdA, duiTdu0, duiTdT)
+    return res
+end
+
+function _add_forwback(s1::forwback,s2::forwback)
+    forwback(s1.uT+s2.uT,s1.duTdA+s2.duTdA,s1.duTdu0+s2.duTdu0,s1.duTdα+s2.duTdα,s1.duTdT+s2.duTdT)
 end
 
 struct SaveSamples end

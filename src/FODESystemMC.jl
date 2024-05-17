@@ -5,6 +5,7 @@ using Statistics: mean
 using UnPack
 using MittagLeffler # to store Malliavin weights efficiently
 using FiniteDifferences
+using Distributed
 
 export FODESystem, randFODESystem, MCSolver, L1Solver, FD_L1Solver
 export SaveSamples, SaveSamplesNoBranching, NoSave, MCDecomposition, myrand
