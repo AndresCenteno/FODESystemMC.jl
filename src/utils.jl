@@ -58,7 +58,43 @@ function score(S::sojourn,i::Int,τ::Number;type::Symbol,p::Int=2)
             return log(mittleff(α,Aii*τ^α))
         end
         return grad(central_fdm(p,1),α->logcdf(α,S.diagA[i]),S.α[i])[1], grad(central_fdm(p,1),Aii->logcdf(S.α[i],Aii),S.diagA[i])[1]
+    elseif type == :finaltime
+        return -(-τ^(S.α[i]-1)*S.diagA[i]*mittleff(S.α[i],S.α[i],S.diagA[i]*τ^S.α[i]))
     else
         throw("type must be either symbol :pdf or :cdf")
     end
+end
+
+function compare(forwback_det::forwback,forwback_sto::forwback)
+    # want to implement a method for when fields of forwback have an aditional dimension
+    if size(forwback_sto.duTdu0,2) == 1
+        return _compare(forwback_det,forwback_sto)
+    end
+    # do hotelling tests
+    return _test(forwback_det,forwback_sto)
+end
+
+function _compare(forwback_det::forwback,forwback_sto::forwback)
+    # want to implement a method for when fields of forwback have an aditional dimension
+    rel_err(a,b) = norm(a .- b)/norm(a)
+    err_vec = zeros(length(fieldnames(forwback)))
+    for i=1:length(err_vec)
+        err_vec[i] = rel_err(getfield(forwback_det,i),getfield(forwback_sto,i))
+    end
+    err_vec
+end
+
+using HypothesisTests
+
+function _test(forwback_det::forwback,forwback_sto::forwback;p=0.05)
+    @show "Hypothesis testing p = $(p)"
+    nsims = length(forwback_sto.uT); n = size(forwback_sto.duTdu0,1)
+    test_passed = zeros(Bool,length(fieldnames(forwback)))
+    test_passed[1] = pvalue(OneSampleTTest(forwback_sto.uT,forwback_det.uT)) > p
+    test_passed[2] = pvalue(OneSampleHotellingT2Test(
+        reshape(forwback_sto.duTdA,n^2,nsims)',reshape(forwback_det.duTdA,n^2))) > p
+    test_passed[3] = pvalue(OneSampleHotellingT2Test(forwback_sto.duTdu0',forwback_det.duTdu0)) > p
+    test_passed[4] = pvalue(OneSampleHotellingT2Test(forwback_sto.duTdα',forwback_det.duTdα)) > p
+    test_passed[5] = pvalue(OneSampleTTest(forwback_sto.duTdT,forwback_det.duTdT)) > p
+    test_passed
 end

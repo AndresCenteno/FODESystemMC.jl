@@ -38,3 +38,12 @@ struct sojourn
         new(diagA,α)
     end
 end
+
+struct forwback
+    # how solution u_i(T) changes when we infinitesimally change one of the parameters of the solution
+    uT
+    duTdA
+    duTdu0
+    duTdα
+    duTdT
+end

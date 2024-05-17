@@ -9,11 +9,12 @@ export FODESystem, randFODESystem, MCSolver, L1Solver, FD_L1Solver
 export SaveSamples, SaveSamplesNoBranching, NoSave, MCDecomposition, myrand
 # API for tests, will probably delete next line when everything works
 export sojourn, score
+# API for comparisons
+export compare
 
 include("types.jl")
 include("utils.jl")
-include("deterministic_solvers.jl"), include("stochastic_solvers.jl")
-include("aux_solvers.jl")
+include("solvers/deterministic_solvers.jl"), include("solvers/stochastic_solvers.jl")
 
 
 end

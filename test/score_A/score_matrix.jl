@@ -2,22 +2,18 @@
 
 using FODESystemMC, Random, Statistics
 
-Random.seed!(1)
-nnodes = 4
+Random.seed!(0)
+nnodes = 6; init_node = 1
 problem = myrand(randFODESystem(),nnodes)
-init_state = 1
+DETsol = FD_L1Solver(problem,init_node;Nt=400)
 
-# deterministic sensitivities
-using FiniteDifferences
-uTD = L1Solver(problem,init_state;Nt=500)
-f(α,A) = L1Solver(A,problem.u0,α,problem.T,init_state;Nt=500)
-duTdαD = grad(central_fdm(2, 1), α->f(α,problem.A), problem.α)[1]
-duTdAD = grad(central_fdm(2, 1), A->f(problem.α,A), problem.A)[1]
+nsims = Int(1e5)
+# testing no save
+MCsol = MCSolver(problem,init_node;nsims=nsims)
+tests_passed = compare(DETsol,MCsol)
+tests_passed
 
-uTS, duTdαS, duTdAS = @time MCSolver(problem,init_state;nsims=Int(1e5))
-
-@show uTS, uTD
-display(duTdαD); display(duTdαS);
-
-display(duTdAD)
-display(duTdAS);
+# testing save
+MCsol = MCSolver(problem,init_node,SaveSamples();nsims=nsims)
+tests_passed = compare(DETsol,MCsol)
+tests_passed
