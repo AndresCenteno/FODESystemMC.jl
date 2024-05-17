@@ -41,19 +41,21 @@ end
 
 @testset "ScoreFunction" begin
     Random.seed!(0)
-    nnodes = 5; init_node = 1; tests = 10
-    test_uT, test_duTdα, test_duTdA = 0,0,0
-    for _=1:tests
-        problem = myrand(randFODESystem(),nnodes)
-        DETsol = FD_L1Solver(problem,init_node;Nt=1000)
-        nsims = Int(1e4)
-        MCsol = MCSolver(problem,init_node,SaveSamples();nsims=nsims)
-    # testing 
-        test_uT += pvalue(OneSampleTTest(MCsol[1],DETsol[1]))>0.05
-        test_duTdα += pvalue(OneSampleHotellingT2Test(MCsol[2]',DETsol[2]))>0.05
-        test_duTdA += pvalue(OneSampleHotellingT2Test(reshape(MCsol[3],nnodes^2,nsims)',reshape(DETsol[3],nnodes^2)))>0.05
-        @show test_uT, test_duTdα, test_duTdA
-    end
+    nnodes = 10; init_node = 1
+    problem = myrand(randFODESystem(),nnodes)
+    DETsol = FD_L1Solver(problem,init_node;Nt=1000)
+
+    nsims = Int(1e5)
+    # testing no save
+    MCsol = MCSolver(problem,init_node;nsims=nsims)
+    tests_passed = compare(DETsol,MCsol)
+    tests_passed
+
+    # testing save
+    Random.seed!(0)
+    MCsol = MCSolver(problem,init_node,SaveSamples();nsims=nsims)
+    tests_passed = compare(DETsol,MCsol)
+    @test all(tests_passed)
 end
 
 # (test_uT, test_duTdα, test_duTdA) = (10, 9, 10)

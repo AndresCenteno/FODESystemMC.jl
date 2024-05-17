@@ -86,7 +86,7 @@ function MCSolver(problem::FODESystem,init_state::Int,::SaveSamples;nsims::Int=I
 
         res = L*u0[i]
         uiT[sim] = res; duiTdα[:,sim] .= score_α*res; duiTdA[:,:,sim] .= score_A*res;
-        duiTdu0[sim] = L; duiTdT[sim] = L*u0[i]*score(sojo,i,T-(t-τ),type=:finaltime)
+        duiTdu0[i,sim] = L; duiTdT[sim] = L*u0[i]*score(sojo,i,T-(t-τ),type=:finaltime)
     end
     return forwback(uiT, duiTdA, duiTdu0, duiTdα, duiTdT)
 end

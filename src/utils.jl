@@ -54,12 +54,15 @@ function score(S::sojourn,i::Int,τ::Number;type::Symbol,p::Int=2)
         end
         return grad(central_fdm(p,1),α->logpdf(α,S.diagA[i]),S.α[i])[1], grad(central_fdm(p,1),Aii->logpdf(S.α[i],Aii),S.diagA[i])[1]
     elseif type == :cdf
-        function logcdf(α,Aii)
+        function logcdf(α,Aii,τ)
             return log(mittleff(α,Aii*τ^α))
         end
-        return grad(central_fdm(p,1),α->logcdf(α,S.diagA[i]),S.α[i])[1], grad(central_fdm(p,1),Aii->logcdf(S.α[i],Aii),S.diagA[i])[1]
+        return grad(central_fdm(p,1),α->logcdf(α,S.diagA[i],τ),S.α[i])[1], grad(central_fdm(p,1),Aii->logcdf(S.α[i],Aii,τ),S.diagA[i])[1]
     elseif type == :finaltime
-        return -(-τ^(S.α[i]-1)*S.diagA[i]*mittleff(S.α[i],S.α[i],S.diagA[i]*τ^S.α[i]))
+        # return grad(central_fdm(p,1),τ->log(mittleff(S.α[i],S.diagA[i]*τ^S.α[i])),τ)[1]
+        # return (log(mittleff(S.α[i],S.diagA[i]*(τ+sqrt(eps()))^S.α[i]))-log(mittleff(S.α[i],S.diagA[i]*(τ-sqrt(eps()))^S.α[i])))/(2*sqrt(eps()))
+        α = S.α[i]; Aii = S.diagA[i]
+        return τ^(α-1)*Aii*mittleff(α,α,Aii*τ^α)/mittleff(α,Aii*τ^α)
     else
         throw("type must be either symbol :pdf or :cdf")
     end
@@ -97,4 +100,8 @@ function _test(forwback_det::forwback,forwback_sto::forwback;p=0.05)
     test_passed[4] = pvalue(OneSampleHotellingT2Test(forwback_sto.duTdα',forwback_det.duTdα)) > p
     test_passed[5] = pvalue(OneSampleTTest(forwback_sto.duTdT,forwback_det.duTdT)) > p
     test_passed
+end
+
+function getmeans(s::forwback)
+    return forwback(mean(s.uT),mean(s.duTdA,dims=3),mean(s.duTdu0,dims=2),mean(s.duTdα,dims=2),mean(s.duTdT))
 end
