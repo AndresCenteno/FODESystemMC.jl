@@ -1,9 +1,9 @@
 struct FODESystem
-    A::Matrix
+    A
     u0::Vector
     α::Vector
     T::Number
-    function FODESystem(A::Matrix,u0::Vector,α::Vector,T::Number)
+    function FODESystem(A,u0::Vector,α::Vector,T::Number)
         # checks that result in error, type checks are done by Julia because I typed the parameters in the definition
         if size(A,1) != size(A,2)
             throw(DomainError(A,"Matrix needs to be squared."))
@@ -30,10 +30,10 @@ struct FODESystem
 end
 
 struct sojourn
-    diagA::Vector # of rates
+    diagA # of rates
     α::Vector # of fractional coefficients
     # not writing checks because this should be checked first at FODESystem
-    function sojourn(A::Matrix,α::Vector)
+    function sojourn(A,α::Vector)
         diagA = copy(diag(A))
         new(diagA,α)
     end
