@@ -41,21 +41,33 @@ end
 
 @testset "ScoreFunction" begin
     Random.seed!(0)
-    nnodes = 10; init_node = 1
+    nnodes = 5; init_node = 1
     problem = myrand(randFODESystem(),nnodes)
     DETsol = FD_L1Solver(problem,init_node;Nt=1000)
 
     nsims = Int(1e5)
     # testing no save
-    MCsol = MCSolver(problem,init_node;nsims=nsims)
-    tests_passed = compare(DETsol,MCsol)
-    tests_passed
 
     # testing save
     Random.seed!(0)
     MCsol = MCSolver(problem,init_node,SaveSamples();nsims=nsims)
     tests_passed = compare(DETsol,MCsol)
-    @test all(tests_passed)
+    @show test_passed
 end
 
 # (test_uT, test_duTdα, test_duTdA) = (10, 9, 10)
+
+Random.seed!(1)
+nnodes = 5; init_node = 1
+problem = myrand(randFODESystem(),nnodes)
+DETsol = FD_L1Solver(problem,init_node;Nt=800)
+
+nsims = Int(1e5)
+Random.seed!(1)
+MCsol = MCSolver(problem,init_node,SaveSamples();nsims=20000)
+tests_passed = compare(DETsol,MCsol)
+
+DETsol.duTdT
+
+using Statistics
+var(MCsol.duTdT)

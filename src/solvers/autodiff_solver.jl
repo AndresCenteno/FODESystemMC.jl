@@ -1,8 +1,8 @@
-# NOT SAVING SAMPLES
+using Zygote
 
-struct StronglyTyped end
+struct Zyg end
 
-function MCSolver(problem::FODESystem,init_state::Int,::StronglyTyped;nsims::Int=Int(1e6))
+function MCSolver(problem::FODESystem,init_state::Int,::Zyg;nsims::Int=Int(1e6))
     @unpack A, u0, α, T = problem
     if !(init_state in 1:length(u0))
         throw(DomainError(init_state,"Choose a node within 1:$(length(u0))"))
@@ -14,10 +14,11 @@ function MCSolver(problem::FODESystem,init_state::Int,::StronglyTyped;nsims::Int
     Ainv = 1 ./A
     sojo = sojourn(A,α)
     res = @distributed _add_forwback for sim=1:nsims
+        display("entered here")
         i = copy(init_state) # state
         L = 1; score_α = zero(α); score_A = zero(A)
         τ = myrand(sojo,i); t = τ
-        s1, s2 = _score_pdf(α[i],A[i,i],τ)
+        s1, s2 = _score_pdf_auto(α[i],A[i,i],τ)
         score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
         score_A[i,i] -= Ainv[i,i]
         while t < T
@@ -30,32 +31,38 @@ function MCSolver(problem::FODESystem,init_state::Int,::StronglyTyped;nsims::Int
             score_A[i,k] += Ainv[i,k]
             i = k # update state
             τ = myrand(sojo,i); t += τ
-            s1, s2 = _score_pdf(α[i],A[i,i],τ)
+            s1, s2 = _score_pdf_auto(α[i],A[i,i],τ)
             score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
             score_A[i,i] -= Ainv[i,i]
+            display("inside while")
         end
         score_α[i] -= s1; score_A[i,i] -= s2; # score for sojourn time
         score_A[i,i] += Ainv[i,i]
-        s1, s2 =  _score_cdf(α[i],A[i,i],T-(t-τ))
+        s1, s2 =  _score_cdf_auto(α[i],A[i,i],τ)
         score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
 
         res = L*u0[i]/nsims
-        forwback(res,score_A*res,L/nsims,score_α*res,_score_t(α[i],A[i,i],T-(t-τ))*res)
+        forwback(res,score_A*res,L/nsims,score_α*res,_score_t_auto(α[i],A[i,i],τ)*res)
     end
     return res
 end
 
-function _score_pdf(α,Aii,τ; ϵ = sqrt(eps()))
-    f(α,Aii)=log(-τ^(α-1)*Aii*mittleff_matlab(α,α,Aii*τ^α))
-    return (f(α+ϵ/2,Aii)-f(α-ϵ/2,Aii))/ϵ, (f(α,Aii+ϵ/2)-f(α,Aii-ϵ/2))/ϵ
+function _score_pdf_auto(α,Aii,τ)
+    θ = [α; Aii]
+    f(θ)=log(-τ^(θ[1]-1)*θ[2]*mittleff(θ[1],θ[1],θ[2]*τ^θ[1]))
+    res = Zygote.gradient(f,θ)[1]
+    res[1], res[2]
 end
 
-function _score_cdf(α,Aii,τ; ϵ = sqrt(eps()))
-    f(α,Aii)=log(mittleff_matlab(α,Aii*τ^α))
-    return (f(α+ϵ/2,Aii)-f(α-ϵ/2,Aii))/ϵ, (f(α,Aii+ϵ/2)-f(α,Aii-ϵ/2))/ϵ
+function _score_cdf_auto(α,Aii,τ)
+    θ = [α; Aii]
+    f(θ)=log(mittleff(θ[1],θ[2]*τ^θ[1]))
+    res = Zygote.gradient(f,θ)[1]
+    res[1], res[2]
 end
 
-function _score_t(α,Aii,τ)
-    return -τ^(α-1)*Aii*mittleff_matlab(α,α,Aii*τ^α)
+function _score_t_auto(α,Aii,τ)
+    f(τ) = τ^(α-1)*Aii*mittleff(α,α,Aii*τ^α)/mittleff(α,Aii*τ^α)
+    return Zygote.gradient(f,τ)[1]
 end
 

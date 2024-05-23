@@ -38,7 +38,7 @@ function MCSolver(problem::FODESystem,init_state::Int,method;nsims::Int=Int(1e6)
         end
         score_α[i] -= s1; score_A[i,i] -= s2; # score for sojourn time
         score_A[i,i] += Ainv[i,i]
-        s1, s2 = score(sojo,i,T-(t-τ),method,type=:cdf)
+        s1, s2 =  _score_cdf(α[i],A[i,i],T-(t-τ))
         score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
 
         res = L*u0[i]/nsims
@@ -69,7 +69,7 @@ function MCSolver(problem::FODESystem,init_state::Int,::SaveSamples;nsims::Int=I
         i = copy(init_state) # state
         L = 1; score_α = zero(α); score_A = zero(A);
         τ = myrand(sojo,i); t = τ
-        s1, s2 = score(sojo,i,τ,type=:pdf)
+        s1, s2 = _score_pdf(α[i],A[i,i],τ)
         score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
         score_A[i,i] -= Ainv[i,i]
         while t < T
@@ -79,18 +79,23 @@ function MCSolver(problem::FODESystem,init_state::Int,::SaveSamples;nsims::Int=I
             score_A[i,k] += Ainv[i,k]
             i = k # update state
             τ = myrand(sojo,i); t += τ
-            s1, s2 = score(sojo,i,τ,type=:pdf)
+            s1, s2 = _score_pdf(α[i],A[i,i],τ)
             score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
             score_A[i,i] -= Ainv[i,i]
         end
         score_α[i] -= s1; score_A[i,i] -= s2; # score for sojourn time
         score_A[i,i] += Ainv[i,i]
-        s1, s2 = score(sojo,i,T-(t-τ),type=:cdf)
-        score_α[i] += s1; score_A[i,i] += s2; # score for sojourn time
+        s1, s2 =  _score_cdf(α[i],A[i,i],T-(t-τ))
+        score_α[i] += s1; score_A[i,i] += s2;
 
         res = L*u0[i]
         uiT[sim] = res; duiTdα[:,sim] .= score_α*res; duiTdA[:,:,sim] .= score_A*res;
-        duiTdu0[i,sim] = L; duiTdT[sim] = L*u0[i]*score(sojo,i,T-(t-τ),type=:finaltime)
+        duiTdu0[i,sim] = L;
+
+        # SPA FOR TIME 
+        # (next_value-standing_value)*infinitesimal_probability_of_jumping_to_next
+        k = findfirst(rand().<P[i,:])
+        duiTdT[sim] = L*(sign(A[i,k])*Q[i]/(-A[i,i])*u0[k]-u0[i])*_score_t(α[i],A[i,i],T-(t-τ))/mittleff_matlab(α[i],A[i,i]*(T-(t-τ))^α[i])
     end
     return forwback(uiT, duiTdA, duiTdu0, duiTdα, duiTdT)
 end
