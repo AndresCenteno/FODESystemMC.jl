@@ -40,34 +40,21 @@ end
 # I had one error and then it breaks so for test=1:5 it should work
 
 @testset "ScoreFunction" begin
+    total_test_passed = zeros(Bool,5)
+    ntests = 20
     Random.seed!(0)
-    nnodes = 5; init_node = 1
-    problem = myrand(randFODESystem(),nnodes)
-    DETsol = FD_L1Solver(problem,init_node;Nt=1000)
+    nnodes = 7; init_node = 1
 
-    nsims = Int(1e5)
-    # testing no save
+    for test = 1:ntests
+        problem = myrand(randFODESystem(),nnodes)
 
-    # testing save
-    Random.seed!(0)
-    MCsol = MCSolver(problem,init_node,SaveSamples();nsims=nsims)
-    tests_passed = compare(DETsol,MCsol)
-    @show test_passed
+        DETsol = FD_L1Solver(problem,init_node;Nt=1000)
+
+        nsims = Int(1e5)
+        Random.seed!(0)
+        MCsol = MCSolver(problem,init_node,SaveSamples();nsims=nsims)
+        tests_passed = compare(DETsol,MCsol)
+        @show total_test_passed += tests_passed
+    end
+    @show total_test_passed
 end
-
-# (test_uT, test_duTdα, test_duTdA) = (10, 9, 10)
-
-Random.seed!(10)
-nnodes = 5; init_node = 1
-problem = myrand(randFODESystem(),nnodes)
-DETsol = FD_L1Solver(problem,init_node;Nt=800)
-
-nsims = Int(1e5)
-Random.seed!(10)
-MCsol = MCSolver(problem,init_node,SaveSamples();nsims=nsims)
-tests_passed = compare(DETsol,MCsol)
-
-DETsol.duTdT
-mean(MCsol.duTdT)
-using Statistics
-var(MCsol.duTdT)
