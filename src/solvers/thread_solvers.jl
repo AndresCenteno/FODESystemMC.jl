@@ -1,14 +1,6 @@
-using SharedArrays
+struct SaveSamplesThreaded end
 
-function _add_forwback(s1::forwback,s2::forwback)
-    # reduce function, just fieldwise addition
-    forwback(s1.uT+s2.uT,s1.duTdA+s2.duTdA,s1.duTdu0+s2.duTdu0,s1.duTdα+s2.duTdα,s1.duTdT+s2.duTdT)
-end
-
-struct SharedSamples end
-
-function MCSolver(problem::FODESystem,init_state::Int,::SharedSamples;nsims::Int=Int(1e6))
-    # preprocessing
+function MCSolver(problem::FODESystem,init_state::Int,::SaveSamplesThreaded;nsims::Int=Int(1e6))
     @unpack A, u0, α, T = problem
     if !(init_state in 1:length(u0))
         throw(DomainError(init_state,"Choose a node within 1:$(length(u0))"))
@@ -16,19 +8,12 @@ function MCSolver(problem::FODESystem,init_state::Int,::SharedSamples;nsims::Int
     if nsims <= 0
         throw(DomainError(nsims,"Number of simulation must be a positive integer"))
     end
-
     Q, P = MCDecomposition2(A)
     Ainv = 1 ./A
     sojo = sojourn(A,α)
-
-    # allocation
-    uiT = SharedArray{Float64}(nsims)
-    duiTdα = SharedArray{Float64}(length(α),nsims)
-    duiTdA = SharedArray{Float64}(size(A,1),size(A,2),nsims)
-    duiTdu0 = SharedArray{Float64}(length(α),nsims)
-    duiTdT = SharedArray{Float64}(nsims)
-
-    @distributed for sim=1:nsims # no reduction
+    uiT = zeros(nsims); duiTdα = zeros(length(α),nsims); duiTdA = zeros(size(A,1),size(A,2),nsims)
+    duiTdu0 = zeros(length(α),nsims); duiTdT = zeros(nsims)
+    Threads.@threads for sim=1:nsims
         i = copy(init_state) # state
         L = 1; score_α = zero(α); score_A = zero(A);
         τ = myrand(sojo,i); t = τ
