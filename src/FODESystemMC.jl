@@ -13,7 +13,7 @@ export LaplaceInv, StronglyTyped, Zyg
 # API for tests, will probably delete next line when everything works
 export sojourn, score
 # API for comparisons
-export compare, getmeans
+export compare, getmeans, forwback
 
 include("types.jl")
 include("utils.jl")

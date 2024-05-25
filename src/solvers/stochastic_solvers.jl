@@ -12,7 +12,9 @@ function MCSolver(problem::FODESystem,init_state::Int,::SaveSamples;nsims::Int=I
     sojo = sojourn(A,α)
     uiT = zeros(nsims); duiTdα = zeros(length(α),nsims); duiTdA = zeros(size(A,1),size(A,2),nsims)
     duiTdu0 = zeros(length(α),nsims); duiTdT = zeros(nsims)
+    timevec = zeros(nsims)
     for sim=1:nsims
+        t1 = time_ns()
         i = copy(init_state) # state
         L = 1; score_α = zero(α); score_A = zero(A);
         τ = myrand(sojo,i); t = τ
@@ -43,8 +45,9 @@ function MCSolver(problem::FODESystem,init_state::Int,::SaveSamples;nsims::Int=I
         # (next_value-standing_value)*infinitesimal_probability_of_jumping_to_next
         k = findfirst(rand().<P[i,:])
         duiTdT[sim] = L*(sign(A[i,k])*Q[i]/(-A[i,i])*u0[k]-u0[i])*_score_t(α[i],A[i,i],T-(t-τ))/mittleff_matlab(α[i],A[i,i]*(T-(t-τ))^α[i])
+        timevec[sim] = time_ns() - t1
     end
-    return forwback(uiT, duiTdA, duiTdu0, duiTdα, duiTdT)
+    return forwback(uiT, duiTdA, duiTdu0, duiTdα, duiTdT), timevec
 end
 
 #### GARBAGE

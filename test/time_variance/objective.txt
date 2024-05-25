@@ -1,0 +1,16 @@
+#TODO
+#SaveSamples should be enough
+
+wanna do like 1e6 simulations, analyze time (and variance of time), variance of result by incrementing some values 
+as in
+
+1D: maybe start here
+size of laplacian (so rate, diagonal value)
+final time for a given simulation above in 1D
+mean value of \alpha
+
+dimension of laplacian considered
+
+and like store mean variance (so online computation of variance??)
+mean variance in d/d\alpha, d/du0 and d/dA
+and times in an array
