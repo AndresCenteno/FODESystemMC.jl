@@ -103,7 +103,6 @@ end
 using HypothesisTests
 
 function _test(forwback_det::forwback,forwback_sto::forwback;p=0.05)
-    @show "Hypothesis testing p = $(p)"
     nsims = length(forwback_sto.uT); n = size(forwback_sto.duTdu0,1)
     test_passed = zeros(Bool,length(fieldnames(forwback)))
     test_passed[1] = pvalue(OneSampleTTest(forwback_sto.uT,forwback_det.uT)) > p

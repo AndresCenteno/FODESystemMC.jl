@@ -4,15 +4,10 @@ using FODESystemMC
 using SparseArrays
 using Statistics
 println(Threads.nthreads())
-nxvec = [2^i for i=3:9]
 
-function laplacian_1D(nx)
-    Δx = 1/nx
-    L = spdiagm(-1=>ones(nx-1)/Δx^2,0=>-2*ones(nx)/Δx^2,1=>ones(nx-1)/Δx^2)
-    L[1,end] = nx^2
-    L[end,1] = nx^2
-    return L
-end
+nexps = 1
+alpha_vec = range(0.1,0.9,2)
+
 
 struct nx_sim
     uT_var
@@ -33,14 +28,17 @@ function nx_sim(nx,MCsol::forwback,times::Vector)
     [nx;var(MCsol.uT);duTdA_var;duTdα_var;duTdu0_var;duTdT_var;mean(times);quantile(times,0.05);quantile(times,0.95)]
 end
 
-simulations = zeros(9,length(nxvec))
-
-Threads.@threads for i in eachindex(nxvec)
-    @show nx = nxvec[i]
-    problem = FODESystem(laplacian_1D(nx),sin.(2*pi*range(0,1,nx)),ones(nx)*0.8,1.)
-    MCsol, times = MCSolver(problem,div(nx,2),SaveSamples();nsims=Int(5e2))
-    simulations[:,i] = nx_sim(nx,MCsol,times)
-    println(simulations[:,i])
+simulations = zeros(9,length(alpha_vec),nexps)
+nnodes = 10
+Threads.@threads for i in 1:nexps
+    @show i
+    problem = myrand(randFODESystem(),nnodes)
+    for j in eachindex(alpha_vec)
+        problem_aux = FODESystem(problem.A,problem.u0,alpha_vec[j]*ones(nnodes),problem.T)
+        MCsol, times = MCSolver(problem,1,SaveSamples();nsims=Int(1e3))
+        simulations[:,j,i] = nx_sim(alpha_vec[j],MCsol,times)
+    end
+    println(simulations[:,:,i])
 end
 using DelimitedFiles
-writedlm("test/time_variance/sims2.csv",simulations)
+writedlm("test/time_variance/alpha_checks.csv",simulations)
