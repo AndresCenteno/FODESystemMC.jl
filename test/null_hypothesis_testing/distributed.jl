@@ -28,4 +28,4 @@ test_passed = SharedArray{Bool}(5,ntests)
     @show test_passed
 end
 
-writedlm("test/parallel_test")
+writedlm("test/null_hypothesis_testing/tests_passed.csv",test_passed)

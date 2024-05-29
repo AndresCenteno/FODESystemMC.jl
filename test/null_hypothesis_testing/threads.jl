@@ -27,4 +27,4 @@ Threads.@threads for test = 1:ntests
 end
 
 @show test_passed
-writedlm("test/parallel_tests/test_passed3_executed_in_REPL.csv",test_passed)
+writedlm("test/null_hypothesis_testing/tests_passed.csv",test_passed)

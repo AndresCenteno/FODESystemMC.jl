@@ -21,4 +21,8 @@ include("solvers/deterministic_solvers.jl"), include("solvers/stochastic_solvers
 include("solvers/strongly_typed_solver.jl"); include("solvers/parallel_solvers.jl")
 include("solvers/thread_solvers.jl")
 include("aux/mittag_leffler.jl"); include("aux/matlab.jl")
+
+# for benchmarking 
+include("solvers/one_sim.jl")
+export one_sim!, MCDecomposition2
 end
