@@ -1,7 +1,7 @@
 # HYPERPARAMETERS
 EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(5e6)
-
-using Plots, FiniteDifferences, FODESystemMC, Statistics, StatsBase, DelimitedFiles
+using Pkg; Pkg.activate("../../../.")
+using Plots, FODESystemMC, Statistics, Random, StatsBase, DelimitedFiles
 include("1D_robin_gaussian.jl")
 
 alphavec = 0.4:0.1:0.9; n = length(alphavec)
@@ -14,7 +14,7 @@ sto_loss = zeros(3,n); sto_sens = zeros(3,n)
 # INITIAL CONDITION
 u0_vec = myu0(Δx,Nt,0.1,0.01)
 # VECTOR OF ALPHAS
-true_alpha = 0.65; falpha(α) = α*(sin.(π*Δx.*(1:Nt)) .+1)/4 .+0.5; α = falpha(true_alpha)
+true_alpha = 0.7; falpha(α) = α*(sin.(π*Δx.*(1:Nt)) .+1)/4 .+0.5; α = falpha(true_alpha)
 # TIME
 T = 0.015
 # TRUE SOLUTION
@@ -29,9 +29,6 @@ for k in eachindex(alphavec)
     det_sens[k] = (eps_sol - det_sol)*(det_sol-true_sol)/EPSILON
     @show det_loss
 end
-
-p = plot(layout=(1,2))  
-plot!(p[1],alphavec,det_loss); plot!(p[2],alphavec,det_sens)
 
 ########## STOCHASTIC
 function chain_rule(M)
@@ -68,10 +65,10 @@ for k in eachindex(alphavec)
     sto_loss[2,k], sto_loss[3,k], sto_sens[2,k], sto_sens[3,k] = bootstrap_sens(dudαvec,sto_sol.uT,true_sol)
 end
 
-writedlm("test/graphs/gaussian_pulse/det_loss.csv",det_loss)
-writedlm("test/graphs/gaussian_pulse/det_sens.csv",det_sens)
-writedlm("test/graphs/gaussian_pulse/sto_loss.csv",sto_loss)
-writedlm("test/graphs/gaussian_pulse/sto_sens.csv",sto_sens)
+writedlm("./det_loss.csv",det_loss)
+writedlm("./det_sens.csv",det_sens)
+writedlm("./sto_loss.csv",sto_loss)
+writedlm("./sto_sens.csv",sto_sens)
 
 ##############################
 # belle sourire #            #
