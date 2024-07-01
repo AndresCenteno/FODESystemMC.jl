@@ -1,7 +1,7 @@
 # HYPERPARAMETERS
 EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(5e6)
 
-using Plots, FiniteDifferences, FODESystemMC, Statistics, StatsBase
+using Plots, FiniteDifferences, FODESystemMC, Statistics, StatsBase, DelimitedFiles
 include("1D_robin_gaussian.jl")
 
 alphavec = 0.4:0.1:0.9; n = length(alphavec)
@@ -67,6 +67,11 @@ for k in eachindex(alphavec)
     sto_sens[1,k] = mean(dudαvec)*(mean(sto_sol.uT)-true_sol)
     sto_loss[2,k], sto_loss[3,k], sto_sens[2,k], sto_sens[3,k] = bootstrap_sens(dudαvec,sto_sol.uT,true_sol)
 end
+
+writedlm("test/graphs/gaussian_pulse/det_loss.csv",det_loss)
+writedlm("test/graphs/gaussian_pulse/det_sens.csv",det_sens)
+writedlm("test/graphs/gaussian_pulse/sto_loss.csv",sto_loss)
+writedlm("test/graphs/gaussian_pulse/sto_sens.csv",sto_sens)
 
 ##############################
 # belle sourire #            #
