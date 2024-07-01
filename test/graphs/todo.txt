@@ -1,0 +1,10 @@
+no lo se... que quiere Juan... unas graficas
+
+ejemplo: Laplaciano y pulso Gaussiano
+
+prove that it gets the sign right
+(so the confidence intervals lie within the orthant)
+then put another point in which variance is a bit higher
+plot in $\alpha\in(0.1,0.9)$
+
+maybe copy from what I already have
