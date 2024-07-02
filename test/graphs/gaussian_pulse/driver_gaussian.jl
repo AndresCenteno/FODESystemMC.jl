@@ -1,11 +1,11 @@
 # HYPERPARAMETERS
-EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(10000)
+EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(5e6)
 using Pkg; Pkg.activate("../../../.")
 using Plots, FODESystemMC, Statistics, Random, StatsBase, DelimitedFiles
 include("1D_robin_gaussian.jl")
 println(Threads.nthreads())
 
-alphavec = 0.4:0.1:0.9; n = length(alphavec)
+alphavec = 0.2:0.2:0.8; n = length(alphavec)
 det_loss = zeros(n); det_sens = zeros(n)
 sto_loss = zeros(3,n); sto_sens = zeros(3,n)
 
@@ -13,9 +13,9 @@ sto_loss = zeros(3,n); sto_sens = zeros(3,n)
 # MATRIX
 Δx = 0.05; Nt = 20; a1 = -10; a2 = 10; A = mymatrix(Δx,Nt,a1,a2)
 # INITIAL CONDITION
-u0_vec = myu0(Δx,Nt,0.1,0.02)
+u0_vec = myu0(Δx,Nt,0.1,0.025)
 # VECTOR OF ALPHAS
-true_alpha = 0.7; falpha(α) = α*(sin.(π*Δx.*(1:Nt)) .+1)/4 .+0.5; α = falpha(true_alpha)
+true_alpha = 0.6; falpha(α) = α*(sin.(π*Δx.*(1:Nt)) .+1)/4 .+0.5; α = falpha(true_alpha)
 # TIME
 T = 0.015
 # TRUE SOLUTION
@@ -58,17 +58,12 @@ Threads.@threads for k in eachindex(alphavec)
     sto_sens[1,k] = mean(sto_duTdα)*(mean(sto_uT)-true_sol)
     sto_loss[2,k], sto_loss[3,k], sto_sens[2,k], sto_sens[3,k] = bootstrap_sens(sto_duTdα,sto_uT,true_sol)
 end
-det_loss
-sto_loss
-sto_loss[1,:]
-det_sens
-sto_sens[1,:]
 
 
-writedlm("./det_loss.csv",det_loss)
-writedlm("./det_sens.csv",det_sens)
-writedlm("./sto_loss.csv",sto_loss)
-writedlm("./sto_sens.csv",sto_sens)
+writedlm("./alpha/det_loss.csv",det_loss)
+writedlm("./alpha/det_sens.csv",det_sens)
+writedlm("./alpha/sto_loss.csv",sto_loss)
+writedlm("./alpha/sto_sens.csv",sto_sens)
 
 ##############################
 # belle sourire #            #
