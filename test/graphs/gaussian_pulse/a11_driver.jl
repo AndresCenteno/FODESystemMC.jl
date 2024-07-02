@@ -1,5 +1,5 @@
 # HYPERPARAMETERS
-EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(5e6)
+EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(10)
 using Pkg; Pkg.activate("../../../.")
 using Plots, FODESystemMC, Statistics, Random, StatsBase, DelimitedFiles
 include("1D_robin_gaussian.jl")
