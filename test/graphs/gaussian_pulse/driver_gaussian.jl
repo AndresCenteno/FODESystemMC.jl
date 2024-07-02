@@ -1,11 +1,11 @@
 # HYPERPARAMETERS
-EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(5e6)
+EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(1000)
 using Pkg; Pkg.activate("../../../.")
 using Plots, FODESystemMC, Statistics, Random, StatsBase, DelimitedFiles
 include("1D_robin_gaussian.jl")
 println(Threads.nthreads())
 
-alphavec = 0.2:0.2:0.8; n = length(alphavec)
+alphavec = 0.3:0.2:0.9; n = length(alphavec)
 det_loss = zeros(n); det_sens = zeros(n)
 sto_loss = zeros(3,n); sto_sens = zeros(3,n)
 
@@ -15,7 +15,7 @@ sto_loss = zeros(3,n); sto_sens = zeros(3,n)
 # INITIAL CONDITION
 u0_vec = myu0(Δx,Nt,0.1,0.025)
 # VECTOR OF ALPHAS
-true_alpha = 0.6; falpha(α) = α*(sin.(π*Δx.*(1:Nt)) .+1)/4 .+0.5; α = falpha(true_alpha)
+true_alpha = 0.7; falpha(α) = α*(sin.(π*Δx.*(1:Nt)) .+1)/4 .+0.5; α = falpha(true_alpha)
 # TIME
 T = 0.015
 # TRUE SOLUTION
