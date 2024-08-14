@@ -1,11 +1,11 @@
 # HYPERPARAMETERS
-EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(1e6)
+EPSILON = sqrt(eps()); NT = 2000; NSIMS = Int(10)
 using Pkg; Pkg.activate("../../../.")
 using Plots, FODESystemMC, Statistics, Random, StatsBase, DelimitedFiles
 include("1D_robin_gaussian.jl")
 println(Threads.nthreads())
 
-alphavec = 0.3:0.2:0.9; n = length(alphavec)
+alphavec = 0.4:0.1:0.9; n = length(alphavec)
 det_loss = zeros(n); det_sens = zeros(n)
 sto_loss = zeros(3,n); sto_sens = zeros(3,n)
 
@@ -58,7 +58,7 @@ Threads.@threads for k in eachindex(alphavec)
     sto_sens[1,k] = mean(sto_duTdα)*(mean(sto_uT)-true_sol)
     sto_loss[2,k], sto_loss[3,k], sto_sens[2,k], sto_sens[3,k] = bootstrap_sens(sto_duTdα,sto_uT,true_sol)
 end
-
+sto_loss[3,:]
 
 writedlm("./alpha/det_loss.csv",det_loss)
 writedlm("./alpha/det_sens.csv",det_sens)

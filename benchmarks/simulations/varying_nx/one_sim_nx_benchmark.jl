@@ -46,6 +46,6 @@ for j_exp in 1:n_exp
     sojo = sojourn(A,α)
     t = @benchmark one_sim!($A,$Ainv,$u0,$α,T,$P,$Q,$sojo,$i,$uiT,$duiTdA,$duiTdu0,$duiTdα,$duiTdT,nsims)
     df[j_exp,:] = (param[1],param[2],mean(t.times),median(t.times),std(t.times),quantile(t.times,p),quantile(t.times,1-p))
-end
+end 
 display("for loop ended")
 CSV.write("benchmarks/simulations/varying_nx/benchtimes_nx_alpha.csv",df)

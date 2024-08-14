@@ -19,7 +19,7 @@ problem = FODESystem(A,u0_vec,α,T); init_node = 1
 true_sol = L1Solver(problem,init_node;Nt=NT)
 ################################
 
-A11vec = (A[1,1]-10):5:(A[1,1]+10); n = length(A11vec)
+A11vec = (A[1,1]-15):5:(A[1,1]+10); n = length(A11vec)
 det_loss = zeros(n); det_sens = zeros(n)
 sto_loss = zeros(3,n); sto_sens = zeros(3,n)
 
